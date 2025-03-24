@@ -5,7 +5,7 @@ import re # regex
 from src.board import Board
 # from src.inputParser import inputParser
 # from src.move import Move
-# from src.piece import Piece
+from src.piece import Piece
 
 WHITE = True
 BLACK = False
@@ -49,7 +49,7 @@ def PrintAvailableCommands() -> None:
 def MakeMove() -> None:
         """
         makes a move
-        """    
+        """
         
 
 
@@ -110,19 +110,18 @@ def StartGame(board : Board) -> None:
                 #         parser = parserWhite
                 # else:
                 #         parser = parserBlack
-                if turn == playerOne:
-                        command = input(
-                                f"It's PLAYER ONE's move."
-                                + " Type '?' for options. ? ",
-                        )
-                else:
-                        command = input(
-                                f"It's PLAYER TWO's move."
-                                + " Type '?' for options. ? ",
-                        )
                 
+                command = input(
+                        f"It's {"PLAYER ONE" if board.currentSide == playerOne else "PLAYER TWO"}'s move."
+                        + " Type '?' for options. ? ",
+                )
+
                 if command.lower() == '?':
                         PrintAvailableCommands()
+                        continue
+                elif command.lower() == 'm':
+                        square = int(input('Enter square: '))
+                        print(Piece(square, board).GetPossibleMoves())
                         continue
                 elif command.lower() == 'exit' or command.lower() == 'quit':
                         return

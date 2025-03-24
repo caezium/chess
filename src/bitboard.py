@@ -26,7 +26,7 @@ class BitBoard:
         self.black_queens  = 0b0001_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000     # d8
         self.black_king    = 0b0000_1000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000     # e8
 
-    def getPieceAtSquare(self, square):
+    def GetPieceAtSquare(self, square):
         """
         Returns the piece at the given square (0-63)
         & - bitwise AND operation, returns non-zero if both bits are 1
