@@ -5,6 +5,7 @@
 # to check if a piece is on a square, we can use bitwise operations, like and, or, xor, shift, etc
 # this will make ai stuff maybe faster later
 # 12 bitboards total, one for each piece
+# TODO more bitboard funcs
 
 
 class BitBoard:
@@ -26,6 +27,7 @@ class BitBoard:
         self.black_queens  = 0b0001_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000     # d8
         self.black_king    = 0b0000_1000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000     # e8
 
+    #todo make this into redudant 8x8 board
     def GetPieceAtSquare(self, square):
         """
         Returns the piece at the given square (0-63)
@@ -49,3 +51,117 @@ class BitBoard:
         if self.black_queens & mask: return 'q'
         if self.black_king & mask: return 'k'
         return None
+
+    #todo make this better, its fast tho
+    def squareToCoords(self, square) -> tuple:
+        """
+        Convert 1-64 square to rank, file -> tuple
+        """
+        rank = square // 8
+        file = square % 8
+        return (rank, file)
+
+    def coordsToSquare(self, rank, file) -> int:
+        """
+        Convert rank, file to 1-64 square -> int
+        """
+        return rank * 8 + file
+
+    def getMask(self, square):
+        """
+        get bitmask for a square
+        """
+        if not 1 <= square <= 64:
+            raise ValueError("Square number is not between 1 and 64")
+        return 1 << square
+
+
+    def MovePiece(self, fromSquare: int, toSquare: int):
+        piece = self.GetPieceAtSquare(fromSquare)
+        print(f"Moving {piece} from {fromSquare} to {toSquare}")  # debug
+        
+        self.ClearSquare(fromSquare) # TODO enpassant edge case
+        self.SetPieceAtSquare(toSquare, piece)
+        
+        
+        print(f"After move: {piece} at {toSquare}: {self.GetPieceAtSquare(toSquare)}")
+        self.PrintBoard()  # for debug, but keep cuz yes
+        
+    def ClearSquare(self, square: int):
+        """
+        Clear any piece from the given square
+        """
+        where = 64-square
+        mask = ~(1 << where)  # Invert the mask to clear the bit
+        
+        # Clear the bit on all piece bitboards
+        self.white_pawns &= mask
+        self.white_knights &= mask
+        self.white_bishops &= mask
+        self.white_rooks &= mask
+        self.white_queens &= mask
+        self.white_king &= mask
+        
+        self.black_pawns &= mask
+        self.black_knights &= mask
+        self.black_bishops &= mask
+        self.black_rooks &= mask
+        self.black_queens &= mask
+        self.black_king &= mask
+
+    def SetPieceAtSquare(self, square: int, piece: str):
+        """
+        Set a piece at the given square
+        piece is a character: 'P','N','B','R','Q','K' for white
+                            'p','n','b','r','q','k' for black
+        """
+        if not piece:
+            return
+            
+        where = 64-square
+        mask = 1 << where
+        
+        # set the bit on the appropriate bitboard
+        if piece == 'P': self.white_pawns |= mask
+        elif piece == 'N': self.white_knights |= mask
+        elif piece == 'B': self.white_bishops |= mask
+        elif piece == 'R': self.white_rooks |= mask
+        elif piece == 'Q': self.white_queens |= mask
+        elif piece == 'K': self.white_king |= mask
+        elif piece == 'p': self.black_pawns |= mask
+        elif piece == 'n': self.black_knights |= mask
+        elif piece == 'b': self.black_bishops |= mask
+        elif piece == 'r': self.black_rooks |= mask
+        elif piece == 'q': self.black_queens |= mask
+        elif piece == 'k': self.black_king |= mask
+
+    def ClearAllPieces(self):
+        self.white_pawns = 0
+        self.white_knights = 0
+        self.white_bishops = 0
+        self.white_rooks = 0
+        self.white_queens = 0
+        self.white_king = 0
+        self.black_pawns = 0
+        self.black_knights = 0
+        self.black_bishops = 0
+        self.black_rooks = 0
+        self.black_queens = 0
+        self.black_king = 0
+
+    def PrintBoard(self):
+        """
+        Prints the current board state in a readable format
+        Separate from the printboard in board.py
+        """
+        print("\n  a b c d e f g h")
+        print("  ---------------")
+        for rank in range(8):
+            print(f"{8-rank}|", end=" ")
+            for file in range(8):
+                square = (rank * 8) + file + 1
+                piece = self.GetPieceAtSquare(square)
+                print(f"{piece if piece else '.'}", end=" ")
+            print(f"|{8-rank}")
+        print("  ---------------")
+        print("  a b c d e f g h\n")

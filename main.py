@@ -3,8 +3,8 @@ import random
 import re # regex
 
 from src.board import Board
-# from src.inputParser import inputParser
-# from src.move import Move
+from src.inputParser import InputParser
+from src.move import Move
 from src.piece import Piece
 
 WHITE = True
@@ -123,14 +123,34 @@ def StartGame(board : Board) -> None:
                         square = int(input('Enter square: '))
                         print(Piece(square, board).GetPossibleMoves())
                         continue
+                elif command.lower() == 'exportpgn':
+                        print(board.exportPGN())
+                        continue
+                elif command.lower() == 'exportfen' or command.lower() == 'export':
+                        print(board.exportFEN())
+                        continue
+                elif command.lower() == 'importfen' or command.lower() == 'import':
+                        fen = input("paste the FEN string:")
+                        if board.importFEN(fen):
+                                print("imported game")
+                        else:
+                                print("import failed")
+                        continue
                 elif command.lower() == 'exit' or command.lower() == 'quit':
                         return
                 
-                # try:
-                #         move = parser.parse(command)
-                # except ValueError as error:
-                #         print('%s' % error)
-                #         continue
+                try:
+                        moveInput = InputParser(board).ParseInput(command.lower())
+                        print(moveInput)
+                        move = Move(board)
+                        if move.MakeMove(moveInput):
+                                board.currentSide = not board.currentSide
+                        else:
+                                print('invalid move')
+                                continue
+                except ValueError as error:
+                        print('%s' % error)
+                        continue
 
                 # MakeMove(move, board)
 

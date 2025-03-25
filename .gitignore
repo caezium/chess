@@ -1,7 +1,9 @@
 # Python cache files
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 
 # macOS system files
 .DS_Store
