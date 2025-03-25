@@ -68,77 +68,70 @@ class Pawn(Piece):
         board = self.board
 
         moves = []
-        direction = -8 if self.isWhite else 8  # Up for white, down for black
+        direction = -8 if self.isWhite else 8
 
+        # Forward moves
         target = square + direction
-        # 1 square forward
         if not board.bitboard.GetPieceAtSquare(target):
             moves.append(target)
             
-            target = square + 2*direction
             # 2 squares on first move
-            # hasnt moved check
-            if self.isWhite:
-                if square in range(49,57): # 49 to 56
-                    if not board.bitboard.GetPieceAtSquare(target):
-                        moves.append(target)
-            else:
-                if square in range(9,17): # 9 to 16
-                    if not board.bitboard.GetPieceAtSquare(target):
-                        moves.append(target)
+            target = square + 2*direction
+            if self.isWhite and square in range(49,57):
+                if not board.bitboard.GetPieceAtSquare(target):
+                    moves.append(target)
+            elif not self.isWhite and square in range(9,17):
+                if not board.bitboard.GetPieceAtSquare(target):
+                    moves.append(target)
         
-        #diagonal captures
-        takes = self.GetPossibleTakes()
-        if takes:
-            moves.append(takes)
-        
-        #en passant
-        if False == True:
-        # if board.movementHistory:
-            lastMove = board.movementHistory[-1]
-            if lastMove['piece'].upper() == 'P':
-                #default row to two rows ahead
-                #then check if beside
-                #then append lastmove and one direction forward fo the side
-                if self.isWhite and lastMove['piece'].isupper() != self.isWhite:
-                    if lastMove['from'] in range(9, 17) and lastMove['to'] in range(25, 33): #9-16 to 25-32
-                        if square in [lastMove['to'] - 1, lastMove['to'] + 1]:
-                            moves.append(lastMove['to'] + direction)
-                elif not self.isWhite and lastMove['piece'].isupper() != self.isWhite:
-                    if lastMove['from'] in range(49,57) and lastMove['to'] in range(33, 41): #49-56 to 33-40
-                        if square in [lastMove['to'] - 1, lastMove['to'] + 1]:
-                            moves.append(lastMove['to'] + direction)
-                #take logic
+        # Add all possible captures including en passant
+        moves.extend(self.GetPossibleTakes())
         return moves
 
-
-    # enpassant can only take pawns, do something about it later but not included here
     def GetPossibleTakes(self) -> list:
         square = self.square
         board = self.board
 
         captures = []
-        direction = -8 if self.isWhite else 8  # Up for white, down for black
-        # diagonal captures
-        column = square%8
+        direction = -8 if self.isWhite else 8
+
+        # Calculate diagonal directions
+        column = square % 8
         column = 8 if column == 0 else column
-        #diagonals cannot go across the sides of the boar
+
+        # Get diagonal capture directions
         if column == 8:
-            diagonals = [direction - 1] if self.isWhite else [direction + 1]
+            diagonals = [direction - 1] if self.isWhite else [direction - 1]
         elif column == 1:
-            diagonals = [direction + 1] if self.isWhite else [direction - 1]
+            diagonals = [direction + 1] if self.isWhite else [direction + 1]
         else:
-            diagonals = [direction + 1, direction - 1] # 9 and 7
-        
+            diagonals = [direction - 1, direction + 1]
+
+        # Regular diagonal captures
         for diagonal in diagonals:
             target = square + diagonal
-            if 1 <= target <= 64:  # Check if target is on board
+            if 1 <= target <= 64:
                 piece = board.bitboard.GetPieceAtSquare(target)
                 if piece and piece.isupper() != self.isWhite:
                     captures.append(target)
-                    #take logic
+
+        # En passant captures
+        lastMove = board.moveHistory.GetLastMove()
+        if lastMove:
+            if lastMove['piece'].upper() == 'P':  # Last move was a pawn
+                # Check if it was a double move
+                if abs(lastMove['fromSquare'] - lastMove['toSquare']) == 16:  # Double pawn move
+                    # Check if our pawn is on the correct rank
+                    correctRank = (square >= 25 and square <= 32) if self.isWhite else (square >= 33 and square <= 40)
+                    if correctRank:
+                        # Check if enemy pawn landed beside us
+                        if abs(square - lastMove['toSquare']) == 1:
+                            # Add the en passant capture square
+                            target = lastMove['toSquare'] + direction
+                            captures.append(target)
+
         return captures
-        
+
 
 class Knight(Piece):
     def GetPossibleMoves(self) -> list:
@@ -209,7 +202,7 @@ class Bishop(Piece):
                     break #friendly piece blocking.
 
                 oldColumn = targetColumn
-                target = square+direction
+                target += direction
             
         return moves
 
@@ -249,7 +242,7 @@ class Rook(Piece):
                 else:
                     break
                 oldColumn = targetColumn
-                target = square+direction
+                target += direction
 
         return moves
 
